@@ -1,0 +1,82 @@
+---
+title: 'Deploy Firefox Send on OpenShift'
+excerpt: 'A step-by-step explanation of how to deploy Firefox Send on an OpenShift Cluster with very minimal effort.'
+thumbnail: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/small_8_send_main_page_a84acf4605.jpg'
+coverImage: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/8_send_main_page_a84acf4605.jpg'
+date: '2020-09-22T00:00:00.027Z'
+---
+
+It's sad that [Mozilla shut down its Send service permanently](https://support.mozilla.org/en-US/kb/what-happened-firefox-send). But what's more sad is that the [mozilla/send repository on Github](https://github.com/mozilla/send) has been archived, and will no longer be maintained and supported. This leaves the responsibility of maintaining it on the community if someone decides to put in the effort.
+
+The repo as it stands right now is usable, and can be forked [as I have done](https://github.com/Bilal-io/send), and deployed on your own server. And today I will share how I successfully deployed it on OpenShift 4.5.
+
+## Issues
+
+Main issue I faced with the original repo was that the server expects a non-authenticated Redis app, this can be achieved with a custom Redis deployment on OpenShift, but not if you choose the easy route of deploying from the catalog which will force you to type a password or it will generate one for you. Because of that, I had to edit two files in the repo, `config.js` and `redis.js`. My changes also added the ability to use a custom Redis port. 
+
+Now let's look at the [server/config.js](https://github.com/Bilal-io/send/blob/master/server/config.js) to identify what environment variables we will need. For my use case, I will not be use AWS S3 buckets, but you're free to use them, instead I will use `FILE_DIR` to specify where I want my uploaded files to be stored, I will use `BASE_URL` to specify the website's URL, `NODE_ENV` set to `production`, `REDIS_HOST` and `REDIS_PASSWORD` and finally `FXA_REQUIRED` set to false as I am not using [Firefox Accounts Server](https://github.com/mozilla/fxa/tree/main/packages/fxa-auth-server). I will leave the rest as default for now, but I may change them if my requirements change.
+
+## Setup
+
+1. First, we need to create a new project, let's name it `firefox-send` You can do that using the CLI by typing `oc new-project firefox-send` or on the Web Console, as shown below.
+
+  ![OpenShift Web Console, how to create a new project](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/1_create_new_project_9287d756d6.png "OpenShift Web Console, how to create a new project")
+
+2. Now switch to the Developer view on the Web Console, and click `+Add` to add a new application, and then click on `From Catalog` and select `Redis`.
+
+3. You can leave all the fields to their default value and click the `Create` button. This will create our Redis deployment, and secret where the Redis password is stored. We will use this later.
+
+  ![Redis Template Form](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/3_redis_form_29ff32015b.jpg "Redis Template Form" )
+4. Now click on `+Add` and now choose `From Dockerfile`.
+
+5. Next up we will fill out the necessary information to create our application.
+
+  - Put in the *Git repo URL* `https://github.com/Bilal-io/send` or your own if you have forked the original repo, but remember I have made small changes to the repo I am using.
+  - *Container Port* `1443`
+  - Choose an *application name* and *name* for your container
+
+  ![Add From DockerFile form: First section](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/5_fill_out_required_information_a_9e8489f5e4.jpg "Add From DockerFile form: First section")
+
+  - (Optional) On the very bottom, click `Routing`, and then fill in the *Hostname,* *Target Port* `1443` and *Security* options.
+
+  ![Add From Dockerfile Form: Routing](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/5_fill_out_required_information_b_940affa946.jpg "Add From Dockerfile Form: Routing")
+
+  - At the very bottom click on *Deployment* and add the Environment variable and their values.
+    - `FILE_DIR:/data`
+    - `BASE_URL`: Exmple: mozilla-send.example.com
+    - `NODE_ENV:production`
+    - `FXA_REQUIRED:false`
+    - `REDIS_HOST`: ip address of your Redis (can be obtained from Project > Service)
+    - `REDIT_PORT` only necessary if your Redis port is not 6379
+    - Then click `Add from Config Map or Secret` and type `REDIS_PASSWORD` in the name field. Then select your Redis secret from `Select Resouce`, and then select the password in `Select Key`
+    - ...Plus any other environment variable that may fit your requirements
+  - Now click `Create`
+
+  ![Add From Dockerfile form: adding deployment environment variables](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/5_fill_out_required_information_c_ff345d7391.jpg "Add From Dockerfile form: adding deployment environment variables")
+
+  > You will see some failed pods before the image is done building, this is normal. The pods will be recreated once the image has finished building.
+
+6. OpenShift will run a build using S2I, meanwhile let's add storage to our container. 
+
+- Click on the pod circle, this will open the resources panel.
+- From the Actions menu, choose Add Storage
+- Once the Add Storage page is open, fill it out with the required values.
+- Click Save, and now go back to the Topology view, click on the pod again, and watch the build logs.
+
+![Steps to add storage](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/6_add_storage_094d5fa01a.jpg "Steps to add storage")
+
+![Add Storage: fill out the form](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/6_add_storage_form_cd8d92ef7b.jpg "Add Storage: fill out the form")
+
+## Success
+
+![Self-hosted Firefox Send main page](https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/8_send_main_page_a84acf4605.jpg "Self-hosted Firefox Send main page")
+
+And with that, our app is ready to be used. 
+
+## Conclusion
+
+I've had to go back and forth to understand which environment variables are needed to build the image, and which are needed for runtime, and how the Front-End is tied with the Back-End, it was a good code reading exercise, and that eventually forced me to make my own changes to the repo. I encourage you to do the same.
+
+There are actively maintained alternatives to Send that you can explore, and perhaps we can collectively continue to work on Send, and allow it to grow beyond what the Firefox team originally envisioned.
+
+If you have a comment, or wish to say hello, drop me a line at [hello@bilalkhoukhi.com](mailto:hello@bilalkhoukhi.com)

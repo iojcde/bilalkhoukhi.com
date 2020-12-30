@@ -1,0 +1,66 @@
+---
+title: 'Using Serverless Framework With Knative on OpenShift'
+excerpt: "I thought deploying serverless functions on OpenShift was a hard task, until I tried it, and I thought I'd share the process with you."
+thumbnail: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/small_Serverless_85aa79ab19.jpg'
+coverImage: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/Serverless_85aa79ab19.jpg'
+date: '2020-09-29T00:00:00.027Z'
+---
+
+Serverless Framework depends on Knative to deploy a serverless function on OpenShift, and then all you need is to run `serverless deploy`
+
+If you didn't already know, Serverless Framework supports Node.js, Python, Java, Go, C#, F#, Ruby, Swift, Kotlin, PHP and Scala
+
+## Prerequisites
+
+- Knative deployed on your Openshift Cluster [Quick Guide](https://docs.openshift.com/container-platform/4.5/serverless/installing_serverless/installing-openshift-serverless.html)
+- Serverless CLI installed on your local machine [Quicker Guide](https://www.serverless.com/framework/docs/getting-started/)
+- A project ready to be deployed
+
+After all the prerequisites are met, let's get started.
+
+First, we want to login to serverless, just type `serverless login` in your terminal, and it'll guide you.
+
+Then, we'll need to clone a project running the command `serverless create -u <github-link>`, you can pick any of these [sample projects](https://github.com/serverless/examples) or setup your own. I will use `npx serverless init knative-express-starter` to create a sample project locally.
+
+Serverless Framework, requires a file called `serverless.yml` as you can see it exists in all the sample projects.
+
+The one I generated looks like this:
+
+```yaml
+app: knative-express-starter
+name: knative-express-starter
+component: knative
+
+inputs:
+  src: ./src
+```
+
+Nothing needs to change here other than the app and name values.
+
+What we need to look at next is the `.env` file
+
+Initially it looks like this:
+
+```yaml
+# Learn more about about the credentials needed
+# to deploy your app https://github.com/serverless/components#credentials
+
+# AWS:
+# AWS_ACCESS_KEY_ID=<your access key>
+# AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
+
+And for Knative to work, it requires these environment variables, so we change it to:
+
+```yaml
+KUBERNETES_ENDPOINT=https://api.openshift.sample.com # or run oc whoami --show-server
+KUBERNETES_PORT=6443
+KUBERNETES_SERVICE_ACCOUNT_TOKEN= # run oc whoami --show-token
+KUBERNETES_SKIP_TLS_VERIFY=true
+```
+
+Now you can run `serverless deploy` or `serverless deploy -v` to display logs
+
+You can also check the status of your deployment on [serverless.com](http://serverless.com) dashboard, or check your OpenShift Web Console, where your function will deploy to a newly created namespace equal to your app's name. e.g `knative-express-starter-sdaf1a`
+
+To read more about how to set up your serverless with Knative and more advanced configs, head over to Serverless Framework's [Knative Introduction Guide](https://www.serverless.com/framework/docs/providers/knative/guide/intro/)	

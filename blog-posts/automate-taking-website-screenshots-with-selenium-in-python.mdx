@@ -1,0 +1,190 @@
+---
+title: 'Automate Taking Website Screenshots With Selenium in Python'
+excerpt: 'Tutorial on how to use Selenium with Python to automate taking screenshots of many websites at once.'
+thumbnail: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/small_arxj243bn90hu4z27zbs_4b425e12c1.jpg'
+coverImage: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/arxj243bn90hu4z27zbs_4b425e12c1.jpg'
+date: '2020-09-12T00:00:00.027Z'
+---
+
+> Originally published on https://dev.to/bilal_io/website-screenshots-with-selenium-in-python-kcn
+
+### Update 01/01/2019
+Here is a Node.js app doing the same work, it is using a React front-end. [Node.js App with Selenium and React](https://github.com/Bilal-io/Web_Screen_Shooter-React-Selenium)
+
+### Update 12/26/2018 
+If you wish to run the job using Headless Chrome, either on Windows, Mac, Linux (Desktop or through SSH), I have added a new section at the end of the post.
+
+## Original Post
+A not too long story short I dread doing repeated tasks manually and that's why I'd rather spend minutes (hours when doing it for the first time) to write a script that automates the process for me. Otherwise I cannot focus, and if you're also horrible at focusing just like I am, I recommend reading [Deep Work by Cal Newport](http://calnewport.com/books/deep-work/).
+
+### Problem:
+I have a Photoshop mock-up of a laptop, tablet and a phone that I need to use to showcase a website.
+
+![laptop, tablet and a phone mockups with a website screenshit displayed on them](https://thepracticaldev.s3.amazonaws.com/i/arxj243bn90hu4z27zbs.jpg "laptop, tablet and a phone mockups with a website screenshit displayed on them")
+
+That's an easy and quick job, 3 screenshots and 2 minutes later, you're done. But what if you have 10, 20, or 100 websites, and you have to supply screenshots of different screen sizes (a desktop, a mobile and a tablet)?
+
+### Solution:
+
+Selenium is the solution. And since I've only used it with Python, I did this tutorial with Python, it is also faster for me to setup compared to a Node.js project, but the functionality should be similar.
+
+Let's start:
+
+If you don't have Python installed in your system already, get it from here: [Python 3.6+](https://www.python.org/downloads/)
+You will also need [Chrome Webdriver](http://chromedriver.chromium.org/downloads)
+
+Once you have Python setup, install Selenium by running the command:
+```bash
+$ pip install selenium
+```
+
+It's easy to get started with python, all you need is a single file that imports the modules you will use, `selenium` and perhaps `time` which will allow us to delay/wait a few seconds after the page is loaded before we take the screenshot.
+
+We will also make use of the `time` module, which is part of the [Python standard library.](https://docs.python.org/3/library/time.html). 
+
+
+Next, Create a file with the extension `.py` and open it with your favorite editor.
+
+First we'll start by importing webdriver from selenium and time.
+```python
+from selenium import webdriver
+import time
+```
+Now let's define a list of links we want to take screenshots of
+
+```python
+links = ['dev.to', 'twitter.com', 'github.com']
+```
+It's import to note that the webdriver does not consider the links above as valid since they do not have the `https://` protocol. We will add it later, and the reason I added them without the protocol is so I can use the above as file names.
+
+We can start using the webdriver by calling `webdrive.chrome(/path/to/chromedriver)` as follows
+```python
+with webdriver.Chrome("C:/chromedriver_win32/chromedriver") as driver:
+    # code goes here using driver
+```
+The above reads as `with this function defined as driver.. do things with driver`
+Which is equivalent to
+```python
+driver = webdriver.Chrome("C:/chromedriver_win32/chromedriver")
+# code goes here using driver
+```
+As far as I can tell, the difference is that the first method will automatically close the browser once it is done doing its job, unlike the second one, which you would have to explicitly call `driver.close()` to close the browser. If anyone knows other reasons, please let me know in the comments.
+
+For this tutorial I will use the first method.
+For those new to Python, it is important to note that the following lines will be indented, as they're contained in the statement above, similar to how you would use curly braces to contain a function/class body in C++, JavaScript and other languages.
+
+For the purpose of taking a screenshot, we will use 3 commands: `set_window_size()`, `get()` and `save_screenshot()`
+```python
+driver.set_window_size(width, height) # takes two arguments, width and height of the browser and it has to be called before using get()
+driver.get(url) # takes one argument, which is the url of the website you want to open
+driver.save_screenshot(/output-dir/file_name.png) # this one takes one argument which is the path and filename all concatenated. Important: the filename should end with .png 
+```
+To learn more about these commands head to the [Webdriver API documentation](https://selenium-python.readthedocs.io/api.html)
+
+Let's put it all together, we will need to loop through the list of links we created above, and define some variables to use for filename, width and height, and the link with the `https://` protocol
+
+
+```python
+with webdriver.Chrome("C:/chromedriver_win32/chromedriver") as driver:
+    for link in links:
+        desktop = {'output': str(link) + '-desktop.png',
+                   'width': 2200,
+                   'height': 1800}
+        tablet = {'output': str(link) + '-tablet.png',
+                  'width': 1200,
+                  'height': 1400}
+        mobile = {'output': str(link) + '-mobile.png',
+                  'width': 680,
+                  'height': 1200}
+        linkWithProtocol = 'https://' + str(link)
+```
+We have defined 3 dictionaries that contain the output filename, width and height for every screen size we need, you can change the dimensions based on your needs.
+
+Now we can start using the commands explained above
+```python
+        # set the window size for desktop
+        driver.set_window_size(desktop['width'], desktop['height'])
+        driver.get(linkWithProtocol)
+        time.sleep(s)
+        driver.save_screenshot(desktop['output'])
+```
+Noticed that we have used `time.sleep(1)`, what that means is that we asked python to delay the execution of the next line until 2 seconds pass. Even without the `sleep` command, the driver will wait for the page to fully load before it takes the screenshot, however, if you have any animation, wait for things to settle down, if that's not needed, then you can get rid of the line. 
+
+and this is how the tablet and mobile will look like:
+```python
+        # set the window size for tablet
+        driver.set_window_size(tablet['width'], tablet['height'])
+        driver.get(linkWithProtocol)
+        time.sleep(2)
+        driver.save_screenshot(tablet['output'])
+
+        # set the window size for mobile
+        driver.set_window_size(mobile['width'], mobile['height'])
+        driver.get(linkWithProtocol)
+        time.sleep(2)
+        driver.save_screenshot(mobile['output'])
+```
+
+
+And with that, all you need to do is run the script from the command line
+```bash
+python script.py
+```
+This will open Chrome browser, resize it, take the screenshot each time and output the file at the same directory you have script.py until it is done.
+
+You can be find the code [here on Github](https://github.com/Bilal-io/Selenium-Screenshot-Script)
+
+### Last note
+Selenium is capable of great things, it can manipulate pages with CSS and JavaScript, fill out forms and submit them, etc... Learn it and put it to good use. 
+
+## How to use Selenium with Headless Chrome
+It can be annoying to have the browser open and close so many times while you're trying to finish other work. The solution is to use Headless Chrome.
+
+Not much will change from the code above. 
+We need to define our `ChromeOptions()` and add an argument to it using `add_argument()` command:
+```python
+options = webdriver.ChromeOptions() # define options
+options.add_argument("headless") # pass headless argument to the options
+```
+
+Then we will pass a new argument to the command we defined before:
+```python
+with webdriver.Chrome("C:/chromedriver_win32/chromedriver") as driver:
+    # code here
+```
+becomes
+```python
+with webdriver.Chrome("C:/chromedriver_win32/chromedriver", chrome_options=options) as driver:
+    # code here
+```
+
+This is all you will need for Mac and Windows which I have tested. Linux desktop have not been tested, but I believe it will work.
+
+### Linux Server through SSH
+Things work differently between Linux Desktop and Server, the latter has no screen, and I am sure it is stripped from so many drivers it does not need, and for that reason, we will have to pass a few more arguments to  make it work.
+As I have not tested this on Linux Desktop, if the solution above does not work, then treat it like we will treat Linux Server
+
+First install Chrome Browser (I never thought I'd need it here)
+
+```bash
+sudo apt-get install -y chromium-browser # BTW I use Ubuntu (says a non-Arch user)
+```
+Then we add these arguments
+
+```python
+options = webdriver.ChromeOptions() # define options
+options.add_argument("headless") # pass headless argument to the options
+options.binary_location = '/usr/bin/chromium-browser' # location of the Chrome Browser binary
+options.add_argument("disable-infobars") # disabling infobars
+options.add_argument("--disable-extensions") # disabling extensions
+options.add_argument("--disable-gpu") # applicable to windows os only
+options.add_argument("--disable-dev-shm-usage") # overcome limited resource problems
+options.add_argument("--no-sandbox") # Bypass OS security model
+# thanks to https://stackoverflow.com/a/50642913/2291648, this answer helped debug the issue
+
+```
+And just like we did above, pass the `chrome_options=options` to the `webdriver.Chrome(...,webdriver.Chrome)` as a second argument.
+
+This worked for me, and I hope it does for you.
+
+#### [Github link (updated repo)](https://github.com/Bilal-io/Selenium-Screenshot-Script)
