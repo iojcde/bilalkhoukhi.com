@@ -1,6 +1,7 @@
 import fs from "fs"
 import { join } from "path"
 import matter from "gray-matter"
+import { Post } from "../models/post"
 
 const postsDirectory = join(process.cwd(), "blog-posts")
 
@@ -8,13 +9,21 @@ export function getPostSlugs() {
   return fs.readdirSync(postsDirectory)
 }
 
-export function getPostBySlug(slug, fields = []) {
+export function getPostBySlug(slug, fields = []): Post {
   const realSlug = slug.replace(/\.mdx$/, "")
   const fullPath = join(postsDirectory, `${realSlug}.mdx`)
   const fileContents = fs.readFileSync(fullPath, "utf8")
   const { data, content } = matter(fileContents)
 
-  const items = {}
+  const items: Post = {
+    title: '',
+    slug: '',
+    excerpt: '',
+    author: '',
+    coverImage: '',
+    thumbnail: '',
+    draft: false,
+  }
 
   // Ensure only the minimal needed data is exposed
   fields.forEach((field) => {
@@ -30,7 +39,7 @@ export function getPostBySlug(slug, fields = []) {
     }
   })
 
-  return items
+  return items;
 }
 
 export function getAllPosts(fields = []) {
@@ -38,6 +47,6 @@ export function getAllPosts(fields = []) {
   const posts = slugs
     .map((slug) => getPostBySlug(slug, fields))
     // sort posts by date in descending order
-    .sort((post1, post2) => (post1.date > post2.date ? "-1" : "1"));
+    .sort((post1, post2) => (post1.date > post2.date ? -1 : 1));
   return posts
 }
