@@ -27,16 +27,14 @@ export default function About() {
           {/* <!-- Page header --> */}
           <h1 className="mb-1 text-4xl">Hi, I am BK</h1>
           {/* <!-- Page sub-header --> */}
-          <p className="text-xl">Software engineer in HTX</p>
+          <p className="text-xl">Front-End Engineer @ BuildOn Technologies, located in HTX</p>
         </header>
 
         {/* <!-- WHo I am section --> */}
         <section className="mb-8">
           <h3 className="mb-4 text-xl font-bold">WHAT I DO</h3>
           <div className="">
-            <p className="mb-2">Professionally I use different tools to build different products. Currently at Mainline.gg, along with my team I am using Angular to develop an amazing esports platform.</p>
-
-            <p>At home, I enjoy making espresso while failing to do basic latte art. I run OpenShift Kubernetes on my homelab, it gives me the opportunity to expose myself to the world of k8s while I deploy apps I build as prototypes to solve specific problems, for fun or to learn something new.</p>
+            <p className="mb-2">Professionally I use different tools to build different products. At home, I enjoy making espresso while failing to do basic latte art. I run Kubernetes on my homelab, it gives me the opportunity to expose myself to the world of k8s while I deploy apps I build as prototypes to solve specific problems, for fun or to learn something new.</p>
           </div>
         </section>
 
