@@ -7,7 +7,7 @@ module.exports = {
   separator: ':',
   theme: {
     fontFamily: {
-      'roboto-mono': ['"Roboto Mono"', 'monospace']
+      'roboto-mono': ['Roboto Mono', 'monospace']
     },
     container: {
       center: true
@@ -41,7 +41,7 @@ module.exports = {
                 color: 'white',
                 'background-color': theme('colors.red.500'),
                 strong: {
-                  color: theme('colors.white')
+                  color: 'white'
                 },
               },
             },
@@ -65,7 +65,7 @@ module.exports = {
               'margin-top': '0'
             },
             code: {
-              color: theme('colors.white'),
+              color: 'white',
               'background-color': theme('colors.grey.800'),
               '&:before, &:after': {
                 display: 'none'
@@ -80,32 +80,25 @@ module.exports = {
               'margin-top': '0',
               'margin-bottom': '0',
               'box-shadow': '0px 2px 4px -2px rgba(0, 0, 0, 30%)'
+            },
+            'ul > li': {
+              '&::before': {
+                'background-color': theme('colors.grey.800'),
+                'font-weight': 'bold'
+              }
+            },
+            'ol > li': {
+              '&::before': {
+                color: theme('colors.grey.800'),
+                'font-weight': 'bold'
+              }
             }
           },
         },
-        'xl': {
-          css: {
-            h1: {
-              'margin-top': '0'
-            },
-            h2: {
-              'margin-top': '0'
-            },
-            h3: {
-              'margin-top': '0'
-            },
-            h4: {
-              'margin-top': '0'
-            },
-            img: {
-              'margin-top': '0',
-              'margin-bottom': '0'
-            }
-          },
-        },
+
         dark: {
           css: {
-            color: theme('colors.white'),
+            color: 'white',
             a: {
               color: theme('colors.red.500'),
               'text-decoration': 'none',
@@ -118,36 +111,49 @@ module.exports = {
               color: theme('colors.red.500')
             },
             h1: {
-              color: theme('colors.white'),
+              color: 'white',
               'margin-top': '0'
             },
             h2: {
-              color: theme('colors.white'),
+              color: 'white',
               'margin-top': '0'
             },
             h3: {
-              color: theme('colors.white'),
+              color: 'white',
               'margin-top': '0'
             },
             h4: {
-              color: theme('colors.white'),
+              color: 'white',
               'margin-top': '0'
             },
             code: {
-              color: theme('colors.white'),
-              'background-color': theme('colors.white'),
+              color: theme('colors.grey.800'),
+              'background-color': 'white',
               '&:before, &:after': {
                 display: 'none'
               }
             },
             p: {
-              color: theme('colors.white'),
+              color: 'white',
               'margin-top': '0',
               'margin-bottom': '1em'
             },
             img: {
               'margin-top': '0',
-              'margin-bottom': '0'
+              'margin-bottom': '0',
+              'box-shadow': '0px 2px 4px -2px rgba(255, 255, 255, 30%)'
+            },
+            'ul > li': {
+              '&::before': {
+                'background-color': 'white',
+                'font-weight': 'bold'
+              }
+            },
+            'ol > li': {
+              '&::before': {
+                color: 'white',
+                'font-weight': 'bold'
+              }
             }
           }
         },
