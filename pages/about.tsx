@@ -27,7 +27,7 @@ export default function About() {
           {/* <!-- Page header --> */}
           <h1 className="mb-1 text-4xl">Hi, I am BK</h1>
           {/* <!-- Page sub-header --> */}
-          <p className="text-xl">Front-End Engineer @ BuildOn Technologies, located in HTX</p>
+          <p className="text-lg">Front-End Engineer @ BuildOn Technologies, located in HTX</p>
         </header>
 
         {/* <!-- WHo I am section --> */}
