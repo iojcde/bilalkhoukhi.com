@@ -1,0 +1,55 @@
+---
+title: 'Single App, Multi Login - Proof of Concept'
+excerpt: "Inspired by Google's solution to allow using multiple accounts, I thought I'd create a similar solution using Angular."
+thumbnail: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/jose-fontano-pZld9PiPDno-unsplash-lock-thumbnail.jpg'
+coverImage: 'https://s3.us-east-2.amazonaws.com/uploads.bilalkhoukhi.com/jose-fontano-pZld9PiPDno-unsplash-lock-large.jpg'
+date: '2021-01-18T12:00:00.027Z'
+---
+
+Google, Instagram, Twitter, and many other services allow users to login to multiple accounts and to switch between them without having to logout from one and login to another. 
+
+At BuildOn Technologies, I saw the need for a similar solution, so I have decided to create a Proof of Concept to assess how easy it can be done with Angular, and whether this is the right solution for us.
+
+## How is it done?
+
+Google's approach is the oldest I have seen as I used it for many years. When you go to Gmail, you will notice the URL looks like this `https://mail.google.com/mail/u/N/...` where N is the index of the account starting from 0. This allows the Frontend app to identify which account it should get data for from the server or `localStorage` and gives you the ability view different accounts in different tabs, where refreshing does not affect which account/page you are viewing.
+
+Looking at Gmail's cookies, you will notice that the keys `GMAIL_AT` and `COMPASS` have their `Path` values correspond to `/mail/u/N` and I believe this is where each account's token is stored.
+
+Twitter's approach is a bit different, you cannot use different accounts in different tabs, once you switch to a different account in one tab, the other tab switches the account right away, I believe they use the [BroadcastChannel Web API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to detect the switch, and then refresh the whole page. As for Instagram, I could not test their multi-login mechanism, but I would think it behaves in a similar way to Twitter. 
+
+## Objective
+
+My goal is to imitate Google's approach with some twists:
+
+- Login to multiple accounts
+- The ability to use them independently in different tabs.
+- Refreshing a tab should not log you out or switch you to another account.
+- Logout from each account should not force you to log out from all, which is the case for Google's implementation.
+- Avoid Google's routing style. So, no `/mail/u/N`.
+
+### Tracking logins and workarounds:
+
+As mentioned, Google forces you to logout of all accounts and that is due to the use of indexes they assign for each account, you cannot logout of account 3 (index 2) and still use account 4 (index 3). If we follow Google's approach, we would be giving up on the ability to logout from accounts independently. Unless we use random digits instead of in-order indexes.
+
+We could also use query parameters instead to detect which account we are currently using, but we would still face the same logout issue, unless we use random digits instead of indexes. `?account=536`
+
+My preferred solution is to use a mix of `localStorage` and `sessionStorage` to keep track of the user in each tab. `localStorage` keeps track of all the accounts that are logged in, while `sessionStorage` can store which of these accounts we are using in the current session. This should allow using different account in different tabs, refreshing does not remove your session, but closing the tab does.
+
+So, what happens if we visit a link in a fresh tab IF we are already logged into multiple accounts? Well, we can show the user a list of accounts, they can choose which to use. And this is a pro and a con:
+
+- The con is that the user's navigation must interrupt, but luckily it only happens if the user is logged into multiple accounts.
+- The pro is fixing the issue in Google's implementation where sharing links with others is wacky... let me explain: Jane and I work at a company that uses Google Suite, she uses the work account as her default (index 0), and I use my personal Gmail account as my default, and the work account as index 1. Jane shares a link with index 0, Google will not let me see the content, and I must switch manually.
+
+## Setup
+
+This POC is done using Angular. To view the completed solution head over to [https://github/Bilal-io/Multi-Login-POC](https://github/Bilal-io/Multi-Login-POC).
+
+Let's walk through some files to explain what is going on:
+
+- Anything under `interceptors` is borrowed from [https://github.com/cornflourblue](https://github.com/cornflourblue) and it is acting as a fake backend. We call `./users/authenticate` route to login and we get a response.
+- The auth service `services/auth.service.ts` has helper functions to login, logout, switch accounts, and deal with `localStorage` and `sessionStorage`, as well as store our login state. Too much in one file, it could be refactored.
+- There are two lazy loaded modules, dashboard and admin.
+- If we look at `guards/authentication.guard.ts` and `guards/admin.guard.ts` we find two auth guards for the dashboard and admin modules. Each has a `canLoad` interface that prevent downloading its respective module if we are not authenticated, or authenticated but not an admin. There is also a  `canActivate` interface that prevents the route from being accessed if not authenticated. (in can the module was loaded, then the user logs out)
+- The Header component lists the users in a dropdown menu, allows us to logout of the active user, or switch to another.
+- The Login page checks the app state to see if we have any accounts, and displays them, giving us the option to choose which to use. Or we can switch to the form and enter the credentials of a different account. In either case, we get redirected to the `/dashboard` unless the tab was initially to a specific URL i.e. `./dashboard/test` then we store that in a query param `?redirect=` and redirect the user to it after a successful login or account switch.
