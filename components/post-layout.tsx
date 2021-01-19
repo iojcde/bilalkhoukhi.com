@@ -1,6 +1,7 @@
 import MDX from "@mdx-js/runtime"
 import Head from 'next/head'
 import Header from './header'
+import Footer from './footer'
 import CodeBlock from './code-block'
 
 export default function Layout({post}) {
@@ -16,8 +17,26 @@ export default function Layout({post}) {
   return (
     <>
       <Head>
-        <title>{post.title} | BK</title>
         <link rel="icon" href="/favicon.ico" />
+
+        <title>{post.title} | BK</title>
+        <meta name="title" content={post?.title}></meta>
+        <meta name="description" content={post?.excerpt}></meta>
+
+        {/* Open Graph / Facebook  */}
+        <meta property="og:type" content="website"></meta>
+        <meta property="og:url" content={post?.slug}></meta>
+        <meta property="og:title" content={post?.title}></meta>
+        <meta property="og:description" content={post?.excerpt}></meta>
+        <meta property="og:image" content={post?.thumbnail}></meta>
+
+        {/* Twitter --> */}
+        <meta property="twitter:card" content="summary_large_image"></meta>
+        <meta property="twitter:url" content={post?.slug}></meta>
+        <meta property="twitter:title" content={post?.title}></meta>
+        <meta property="twitter:description" content={post?.excerpt}></meta>
+        <meta property="twitter:image" content={post?.thumbnail}></meta>
+
       </Head>
 
       <Header />
@@ -39,6 +58,7 @@ export default function Layout({post}) {
           {post.content}
         </MDX>
       </main>
+      <Footer></Footer>
     </>
   )
 }
