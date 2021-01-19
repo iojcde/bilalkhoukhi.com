@@ -169,8 +169,9 @@ module.exports = {
       transitionDuration: ['hover'],
       transitionProperty: ['hover'],
       margin: ['last'],
-      padding: ['last'],
+      padding: ['last', 'hover'],
       height: ['group-hover'],
+      margin: ['group-hover'],
       typography: ['dark']
     }
   } 
